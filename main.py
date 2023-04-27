@@ -1,10 +1,32 @@
+"""
+The code provided defines several classes that work together
+to model a Graph object and simulate Fleas moving on it.
+
+The Graph class is responsible for maintaining the adjacency list
+of the graph and the state of each vertex.
+
+The Permutation class is used to represent the state of each vertex
+as a permutation of its neighbors.
+
+The Flea class is responsible for simulating the movement
+of the flea on the graph by applying the appropriate permutation
+to determine the destination vertex and updating the state
+of the vertices it moves between.
+
+The structure of the graph and number of fleas can be initialized.
+The rule of state change can be modified in the state_change function.
+"""
+
+
 class Permutation:
     def __init__(self, p):
         self.perm = p
+        self.length = len(p)
 
     def __mul__(self, other):
-        result = [0, 0, 0]
-        for i in range(3):
+        assert (self.length == len(other))
+        result = [0] * self.length
+        for i in range(self.length):
             result[i] = self.perm[other.perm[i]]
         return Permutation(result)
 
@@ -21,55 +43,76 @@ class Permutation:
 class Graph:
     def __init__(self):
         self.adj_list = {}
-        self.vertex_state = {}
-
-    def add_vertex(self, vertex, state):
-        if vertex not in self.adj_list:
-            self.adj_list[vertex] = []
-            self.vertex_state[vertex] = state
-
-    def add_edge(self, v1, v2):
-        if v1 in self.adj_list and v2 in self.adj_list:
-            self.adj_list[v1].append(v2)
-            self.adj_list[v2].append(v1)
-
-    def get_adjacent_vertices(self, vertex):
-        if vertex in self.adj_list:
-            return self.adj_list[vertex]
-        else:
-            return []
-
-    def state_change(self, source, destination):
-        self.vertex_state[destination].left_translation(source)
+        self.state_list = {}
 
     def __str__(self):
         result = ""
         for vertex in self.adj_list:
             result += str(vertex) + " -> " + str(self.adj_list[vertex]) + " (state: " + str(
-                self.vertex_state[vertex]) + ")\n"
+                self.state_list[vertex]) + ")\n"
         return result
+
+    def add_vertex(self, vertex, state):
+        """
+        :param vertex: index of the vertex
+        :param state: the state of the corresponding vertex (a Permutation)
+        :return: none
+        """
+        if vertex not in self.adj_list:
+            self.adj_list[vertex] = []
+            self.state_list[vertex] = state
+
+    def add_edge(self, v1, v2):
+        """
+        :param v1: index of the first vertex the edge is incident to
+        :param v2: index of the second vertex the edge is incident to
+        :return: none
+        """
+        if v1 in self.adj_list and v2 in self.adj_list:
+            self.adj_list[v1].append(v2)
+            self.adj_list[v2].append(v1)
+        else:
+            print("add_edge failed: vertex not found")
+
+    def state_change(self, position, destination):
+        """
+        :param position: index of the current vertex
+        :param destination: index of the destination vertex
+        :return: none
+        """
+        self.state_list[destination].left_translation(self.state_list[position])
 
 
 class Flea:
-    def __init__(self, position, source, graph):
+    def __init__(self, position, source, graph, trace):
+        """
+        :param position: index of the vertex the flea is currently on
+        :param source: the index of the vertex the flea comes from
+        :param graph: the graph the flea is on
+        :param trace: the trace of the flea
+        """
         self.position = position
         self.source = source
         self.graph = graph
+        self.trace = [position]
 
     def hop(self):
-        pass
+        current_state = self.graph.state_list[self.position]
+        destination = current_state[self.source]
+        self.graph.state_change(position=self.position, destination=destination)
+        self.source = self.position
+        self.position = destination
+        self.trace.append(self.position)
 
 
 def main():
     graph = Graph()
-    initial_states = []
-    connection = [[], []]
+    initial_states = [[], ]
     for i, state in enumerate(initial_states):
         graph.add_vertex(i, state)
-    for i, neighbors in enumerate(connection):
-        for neighbor in neighbors:
-            graph.add_edge(i, neighbor)
-
+    edges = [(), ]
+    for i, edge in enumerate(edges):
+        graph.add_edge(edge[0], edge[1])
     flea = Flea()
 
 
